@@ -125,6 +125,48 @@ class ToolRegistry:
         
         return result
     
+    def register_execution_tools(self, conversation_id: str):
+        """Registra ferramentas de execução (terminal/browser) para uma conversa"""
+        from execution.execution_tools import ExecutionTools
+        
+        exec_tools = ExecutionTools(conversation_id)
+        
+        self.register_tool(
+            "terminal_run",
+            "Executa um comando no terminal do sistema",
+            exec_tools.terminal_run,
+            {
+                "command": {
+                    "type": "string",
+                    "description": "Comando a ser executado"
+                }
+            }
+        )
+        
+        self.register_tool(
+            "web_screenshot",
+            "Tira um screenshot de uma página web",
+            exec_tools.web_screenshot,
+            {
+                "url": {
+                    "type": "string",
+                    "description": "URL da página web"
+                }
+            }
+        )
+
+        self.register_tool(
+            "web_read",
+            "Lê o conteúdo de texto de uma página web",
+            exec_tools.web_read,
+            {
+                "url": {
+                    "type": "string",
+                    "description": "URL da página web"
+                }
+            }
+        )
+
     def get_tools_for_llm(self) -> list:
         """Retorna ferramentas no formato para LLMs (function calling)"""
         tools_spec = []

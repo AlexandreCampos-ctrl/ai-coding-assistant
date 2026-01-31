@@ -21,13 +21,18 @@ class GeminiProvider(BaseLLMProvider):
         
         genai.configure(api_key=api_key)
         
-        # Inicializar modelo
+        # Inicializar modelo sem tools por padrão
+        self._setup_model()
+
+    def _setup_model(self, tools: list = None):
+        """Configura a instância do modelo com ferramentas se disponíveis"""
         self.model_instance = genai.GenerativeModel(
             model_name=self.model,
             generation_config={
                 'temperature': self.temperature,
                 'max_output_tokens': self.max_tokens,
-            }
+            },
+            tools=tools
         )
     
     @property
@@ -62,9 +67,13 @@ class GeminiProvider(BaseLLMProvider):
         
         return gemini_messages
     
-    async def generate(self, messages: List[Dict[str, str]]) -> Dict:
+    async def generate(self, messages: List[Dict[str, str]], tools: list = None) -> Dict:
         """Gera resposta (não-streaming)"""
         try:
+            # Re-configurar modelo se houver tools
+            if tools:
+                self._setup_model(tools)
+
             # Formatar mensagens
             formatted_messages = self._format_messages(messages)
             gemini_messages = self._convert_messages(formatted_messages)
@@ -75,9 +84,19 @@ class GeminiProvider(BaseLLMProvider):
             # Enviar última mensagem
             response = chat.send_message(gemini_messages[-1]['parts'][0])
             
+            tool_calls = []
+            # Extrair function calls se houver
+            if response.candidates and response.candidates[0].content.parts:
+                for part in response.candidates[0].content.parts:
+                    if fn := part.function_call:
+                        tool_calls.append({
+                            'name': fn.name,
+                            'arguments': dict(fn.args)
+                        })
+
             return {
-                'content': response.text,
-                'tool_calls': []  # TODO: Implementar function calling
+                'content': response.text if not tool_calls else "",
+                'tool_calls': tool_calls
             }
         
         except Exception as e:
@@ -86,9 +105,13 @@ class GeminiProvider(BaseLLMProvider):
                 'tool_calls': []
             }
     
-    async def stream_generate(self, messages: List[Dict[str, str]]) -> AsyncGenerator[str, None]:
+    async def stream_generate(self, messages: List[Dict[str, str]], tools: list = None) -> AsyncGenerator[str, None]:
         """Gera resposta (streaming)"""
         try:
+            # Re-configurar modelo se houver tools
+            if tools:
+                self._setup_model(tools)
+
             # Formatar mensagens
             formatted_messages = self._format_messages(messages)
             gemini_messages = self._convert_messages(formatted_messages)

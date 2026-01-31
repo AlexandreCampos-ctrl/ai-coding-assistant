@@ -200,6 +200,9 @@ async def websocket_chat(websocket: WebSocket):
             message = request_data.get('message')
             conversation_id = request_data.get('conversation_id') or conversation_manager.create_conversation()
             
+            # Registrar ferramentas de execução para esta conversa
+            tool_registry.register_execution_tools(conversation_id)
+
             # Obter provider
             provider = get_llm_provider()
             
@@ -212,13 +215,49 @@ async def websocket_chat(websocket: WebSocket):
             # Construir mensagens
             messages = history + [{"role": "user", "content": message}]
             
-            # Stream response
-            full_response = ""
-            async for chunk in provider.stream_generate(messages):
-                full_response += chunk
+            # Obter especificações de ferramentas para o LLM
+            tools_spec = tool_registry.get_tools_for_llm()
+            
+            # Primeira chamada ao LLM (pode gerar tool calls)
+            # Nota: Usamos generate (non-stream) para lidar com tool calls de forma mais simples no MVP
+            response = await provider.generate(messages, tools=tools_spec)
+            
+            # Loop de ferramentas (enquanto houver tool calls)
+            while response.get('tool_calls'):
+                for tool_call in response['tool_calls']:
+                    # Notificar UI que ferramenta está sendo executada
+                    await websocket.send_json({
+                        "type": "tool_call",
+                        "tool": tool_call['name'],
+                        "args": tool_call['arguments']
+                    })
+                    
+                    # Executar ferramenta
+                    result = await tool_registry.execute_tool(
+                        tool_call['name'],
+                        tool_call['arguments']
+                    )
+                    
+                    # Notificar UI com resultado da ferramenta
+                    await websocket.send_json({
+                        "type": "tool_result",
+                        "tool": tool_call['name'],
+                        "result": str(result)
+                    })
+                    
+                    # TODO: Na Fase 3, enviar o resultado de volta para o LLM continuar
+                    # Por enquanto, mostramos no chat
+                
+                # Para evitar loop infinito no MVP, paramos após processar as ferramentas atuais
+                break 
+
+            full_response = response.get('content', '')
+            
+            # Se não houve tool calls ou sobrou conteúdo, envia para a UI
+            if full_response:
                 await websocket.send_json({
                     "type": "chunk",
-                    "content": chunk,
+                    "content": full_response,
                     "conversation_id": conversation_id
                 })
             

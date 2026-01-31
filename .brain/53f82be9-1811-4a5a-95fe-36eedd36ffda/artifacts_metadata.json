@@ -1,0 +1,9 @@
+{
+  "implementation_plan.md": {
+    "type": "implementation_plan",
+    "summary": "Plano para verificar a versão do Python via terminal e capturar a tela do Google usando Selenium.",
+    "created_at": "2026-01-31T19:42:03.912229",
+    "updated_at": "2026-01-31T19:42:03.912274",
+    "size": 865
+  }
+}
