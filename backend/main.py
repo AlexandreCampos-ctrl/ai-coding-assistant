@@ -12,6 +12,7 @@ from typing import List, Dict, Optional, AsyncGenerator
 import uvicorn
 import json
 import asyncio
+import re
 from pathlib import Path
 
 # Importações locais
@@ -22,6 +23,8 @@ from llm_providers.ollama_provider import OllamaProvider
 from tools.tool_registry import ToolRegistry
 from memory.conversation_manager import ConversationManager
 from config_loader import load_config
+from artifacts import ArtifactManager, ArtifactCreate, ArtifactUpdate, ArtifactResponse
+from task_tracking import task_manager, TaskMode
 
 # Inicializar FastAPI
 app = FastAPI(title="AI Coding Assistant", version="1.0.0")
@@ -41,6 +44,9 @@ config = load_config()
 # Gerenciadores
 conversation_manager = ConversationManager()
 tool_registry = ToolRegistry()
+
+# Artifact manager por conversação (será criado sob demanda)
+artifact_managers = {}
 
 # LLM Provider atual
 current_provider: Optional[BaseLLMProvider] = None
@@ -216,6 +222,9 @@ async def websocket_chat(websocket: WebSocket):
                     "conversation_id": conversation_id
                 })
             
+            # processar tags especiais no final (Fase 1 MVP)
+            await process_llm_tags(full_response, conversation_id)
+            
             # Adicionar resposta completa ao histórico
             conversation_manager.add_message(conversation_id, "assistant", full_response)
             
@@ -228,6 +237,58 @@ async def websocket_chat(websocket: WebSocket):
     except Exception as e:
         print(f"WebSocket error: {e}")
         await websocket.close()
+
+
+async def process_llm_tags(text: str, conversation_id: str):
+    """Processa tags [[TASK_UPDATE]] e [[ARTIFACT_UPDATE]] no texto do LLM"""
+    
+    # 1. Processar TASK_UPDATE
+    # Ex: [[TASK_UPDATE: Name="Task", Mode="execution", Progress=50, Status="Working"]]
+    task_pattern = r'\[\[TASK_UPDATE:\s*(.*?)\]\]'
+    for match in re.finditer(task_pattern, text):
+        attrs_str = match.group(1)
+        attrs = {}
+        # Parse attributes simple regex
+        for attr_match in re.finditer(r'(\w+)="([^"]+)"|(\w+)=(\d+)', attrs_str):
+            key = attr_match.group(1) or attr_match.group(3)
+            val = attr_match.group(2) or attr_match.group(4)
+            if val.isdigit():
+                val = int(val)
+            attrs[key] = val
+        
+        if 'Name' in attrs and 'Mode' in attrs:
+            task_manager.start_task(
+                name=attrs['Name'],
+                mode=attrs['Mode'],
+                status=attrs.get('Status', ''),
+                subtasks=attrs.get('Subtasks', '').split(',') if attrs.get('Subtasks') else []
+            )
+            if 'Progress' in attrs:
+                task_manager.update_progress(progress=attrs['Progress'])
+
+    # 2. Processar ARTIFACT_UPDATE
+    # Ex: [[ARTIFACT_UPDATE: Name="task.md", Type="task", Summary="Update"]]
+    artifact_pattern = r'\[\[ARTIFACT_UPDATE:\s*(.*?)\]\]\n?(.*?)(?=\[\[|$)'
+    for match in re.finditer(artifact_pattern, text, re.DOTALL):
+        attrs_str = match.group(1)
+        content = match.group(2).strip()
+        
+        attrs = {}
+        for attr_match in re.finditer(r'(\w+)="([^"]+)"', attrs_str):
+            attrs[attr_match.group(1)] = attr_match.group(2)
+        
+        if 'Name' in attrs and content:
+            manager = get_artifact_manager(conversation_id)
+            try:
+                # Tenta atualizar se já existir, senão cria
+                manager.update_artifact(attrs['Name'], content, summary=attrs.get('Summary'))
+            except FileNotFoundError:
+                manager.create_artifact(
+                    attrs['Name'], 
+                    content, 
+                    artifact_type=attrs.get('Type', 'other'),
+                    summary=attrs.get('Summary', '')
+                )
 
 
 @app.get("/api/conversations")
@@ -274,6 +335,154 @@ async def execute_tool_endpoint(tool_name: str, params: Dict):
         return {"result": result}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+# ==============================================================================
+# ARTIFACTS ENDPOINTS
+# ==============================================================================
+
+def get_artifact_manager(conversation_id: str) -> ArtifactManager:
+    """Obtém ou cria artifact manager para uma conversação"""
+    if conversation_id not in artifact_managers:
+        artifact_managers[conversation_id] = ArtifactManager(conversation_id)
+    return artifact_managers[conversation_id]
+
+
+@app.get("/api/artifacts")
+async def list_artifacts(conversation_id: str = "default"):
+    """Lista todos os artifacts de uma conversação"""
+    try:
+        manager = get_artifact_manager(conversation_id)
+        artifacts = manager.list_artifacts()
+        return {"artifacts": artifacts, "conversation_id": conversation_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/artifacts/{artifact_name}")
+async def get_artifact(artifact_name: str, conversation_id: str = "default"):
+    """Obtém um artifact específico"""
+    try:
+        manager = get_artifact_manager(conversation_id)
+        artifact = manager.get_artifact(artifact_name)
+        return artifact
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/artifacts", response_model=ArtifactResponse)
+async def create_artifact(artifact: ArtifactCreate, conversation_id: str = "default"):
+    """Cria um novo artifact"""
+    try:
+        manager = get_artifact_manager(conversation_id)
+        result = manager.create_artifact(
+            name=artifact.name,
+            content=artifact.content,
+            artifact_type=artifact.artifact_type,
+            summary=artifact.summary
+        )
+        return ArtifactResponse(**result, content=artifact.content)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.put("/api/artifacts/{artifact_name}")
+async def update_artifact(
+    artifact_name: str,
+    update: ArtifactUpdate,
+    conversation_id: str = "default"
+):
+    """Atualiza um artifact existente"""
+    try:
+        manager = get_artifact_manager(conversation_id)
+        result = manager.update_artifact(
+            name=artifact_name,
+            content=update.content,
+            summary=update.summary
+        )
+        return result
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/api/artifacts/{artifact_name}")
+async def delete_artifact(artifact_name: str, conversation_id: str = "default"):
+    """Deleta um artifact"""
+    try:
+        manager = get_artifact_manager(conversation_id)
+        result = manager.delete_artifact(artifact_name)
+        return result
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ==============================================================================
+# TASK TRACKING ENDPOINTS
+# ==============================================================================
+
+@app.get("/api/task/current")
+async def get_current_task():
+    """Obtém a task atual"""
+    task = task_manager.get_current()
+    if task:
+        return task
+    return {"message": "Nenhuma task ativa"}
+
+
+@app.post("/api/task/start")
+async def start_task(
+    name: str,
+    mode: TaskMode,
+    status: str = "",
+    subtasks: List[str] = []
+):
+    """Inicia uma nova task"""
+    try:
+        task = task_manager.start_task(name, mode, status, subtasks)
+        return task
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.put("/api/task/progress")
+async def update_task_progress(
+    progress: Optional[int] = None,
+    status: Optional[str] = None,
+    mode: Optional[TaskMode] = None
+):
+    """Atualiza progresso da task atual"""
+    try:
+        task = task_manager.update_progress(progress, status, mode)
+        return task
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/task/complete")
+async def complete_task():
+    """Completa a task atual"""
+    try:
+        task = task_manager.complete_task()
+        return task
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/task/history")
+async def get_task_history(limit: int = 10):
+    """Obtém histórico de tasks"""
+    history = task_manager.get_history(limit)
+    return {"history": history}
 
 
 @app.get("/health")
