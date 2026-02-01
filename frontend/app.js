@@ -62,6 +62,14 @@ function connectWebSocket() {
 
         if (data.type === 'chunk') {
             appendToLastMessage(data.content);
+        } else if (data.type === 'tool_call') {
+            if (window.terminalDashboard) {
+                window.terminalDashboard.logToolCall(data.tool, data.args);
+            }
+        } else if (data.type === 'tool_result') {
+            if (window.terminalDashboard) {
+                window.terminalDashboard.logToolResult(data.tool, data.result);
+            }
         } else if (data.type === 'done') {
             isStreaming = false;
             Prism.highlightAll();

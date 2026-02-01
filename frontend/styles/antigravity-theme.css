@@ -66,10 +66,82 @@
     justify-content: center;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+/* Terminal Dashboard (Fase 4) */
+.terminal-dashboard {
+    position: fixed;
+    bottom: -300px;
+    left: 20px;
+    right: 20px;
+    height: 250px;
+    z-index: 1000;
+    transition: bottom 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.terminal-dashboard.visible {
+    bottom: 80px;
+    pointer-events: all;
+}
+
+.terminal-header {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 0.5rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: var(--secondary-color);
+}
+
+.terminal-content {
+    flex: 1;
+    background: rgba(10, 10, 15, 0.95);
+    padding: 1rem;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.85rem;
+    overflow-y: auto;
+    color: #d1d1d1;
+}
+
+.terminal-line {
+    margin-bottom: 4px;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.terminal-command {
+    color: #4ecdc4;
+    font-weight: bold;
+}
+
+.terminal-system {
+    color: #ff6b6b;
+    font-style: italic;
+}
+
+.terminal-stdout {
+    color: #d1d1d1;
+}
+
+.terminal-stderr {
+    color: #ff5555;
+}
+
+.clear-terminal {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.clear-terminal:hover {
+    color: #fff;
 }
 
 ::-webkit-scrollbar-track {

@@ -80,6 +80,15 @@
                 </div>
             </div>
 
+            <!-- Dashboard de Terminal (Fase 4) -->
+            <div id="terminal-dashboard" class="terminal-dashboard glass-panel">
+                <div class="terminal-header">
+                    <span>💻 Terminal Output</span>
+                    <button class="clear-terminal" onclick="terminalDashboard.clear()">🗑️</button>
+                </div>
+                <div id="terminal-content" class="terminal-content"></div>
+            </div>
+
             <div class="input-area">
                 <textarea id="user-input" placeholder="Digite sua mensagem... (Shift+Enter para nova linha)"
                     onkeydown="handleKeyPress(event)"></textarea>
@@ -90,6 +99,9 @@
         </main>
     </div>
 
+    <script src="/static/components/TaskProgress.js"></script>
+    <script src="/static/components/ArtifactsPanel.js"></script>
+    <script src="/static/components/TerminalDashboard.js"></script>
     <script src="/static/app.js"></script>
 </body>
 

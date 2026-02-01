@@ -167,6 +167,30 @@ class ToolRegistry:
             }
         )
 
+        self.register_tool(
+            "project_search",
+            "Busca arquivos e símbolos (funções, classes) no projeto inteiro",
+            exec_tools.project_search,
+            {
+                "keyword": {
+                    "type": "string",
+                    "description": "Palavra-chave ou nome do símbolo a buscar"
+                }
+            }
+        )
+
+        self.register_tool(
+            "autonomous_terminal_run",
+            "Executa um comando terminal com IA para auto-correção se falhar",
+            exec_tools.autonomous_terminal_run,
+            {
+                "command": {
+                    "type": "string",
+                    "description": "Comando a ser executado automaticamente"
+                }
+            }
+        )
+
     def get_tools_for_llm(self) -> list:
         """Retorna ferramentas no formato para LLMs (function calling)"""
         tools_spec = []

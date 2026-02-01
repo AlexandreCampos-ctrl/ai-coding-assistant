@@ -25,6 +25,7 @@ from memory.conversation_manager import ConversationManager
 from config_loader import load_config
 from artifacts import ArtifactManager, ArtifactCreate, ArtifactUpdate, ArtifactResponse
 from task_tracking import task_manager, TaskMode
+from memory.rag.project_indexer import ProjectIndexer
 
 # Inicializar FastAPI
 app = FastAPI(title="AI Coding Assistant", version="1.0.0")
@@ -37,6 +38,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.on_event("startup")
+async def startup_event():
+    """Executa tarefas ao iniciar o servidor"""
+    print("🔍 Indexando projeto para Inteligência de Fase 4...")
+    indexer = ProjectIndexer(os.getcwd())
+    indexer.index_project()
+    print("✅ Projeto indexado com sucesso!")
 
 # Configuração global
 config = load_config()
@@ -200,11 +209,11 @@ async def websocket_chat(websocket: WebSocket):
             message = request_data.get('message')
             conversation_id = request_data.get('conversation_id') or conversation_manager.create_conversation()
             
-            # Registrar ferramentas de execução para esta conversa
-            tool_registry.register_execution_tools(conversation_id)
-
             # Obter provider
             provider = get_llm_provider()
+            
+            # Registrar ferramentas de execução para esta conversa
+            tool_registry.register_execution_tools(conversation_id, provider=provider)
             
             # Obter histórico
             history = conversation_manager.get_messages(conversation_id)
