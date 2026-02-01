@@ -14,45 +14,56 @@
 
 /* Glassmorphism Classes */
 .glass-panel {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    background: rgba(15, 15, 25, 0.7) !important;
+    backdrop-filter: blur(15px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(15px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-/* GitHub Style Alerts */
-.markdown-content blockquote {
-    padding: 0.5rem 1rem;
-    color: #8b949e;
-    border-left: 0.25rem solid #30363d;
-    margin: 1rem 0;
-}
-
-.markdown-content blockquote p {
-    margin: 0;
+/* GitHub Style Alerts (Base) */
+.markdown-content blockquote.alert {
+    padding: 0.75rem 1.25rem;
+    color: #e6edf3;
+    border-left: 0.25rem solid transparent;
+    border-radius: 6px;
+    margin: 1.5rem 0;
+    font-size: 0.95rem;
 }
 
 /* Alert Variants */
-.markdown-content blockquote:has(strong:contains("!IMPORTANT")),
-.markdown-content blockquote:has(p:first-child:contains("[!IMPORTANT]")) {
-    border-left-color: #cf222e;
-    background: rgba(207, 34, 46, 0.1);
+.alert-note {
+    border-left-color: #1f6feb !important;
+    background: rgba(31, 111, 235, 0.1) !important;
 }
 
-.markdown-content blockquote:has(p:first-child:contains("[!NOTE]")) {
-    border-left-color: #1f6feb;
-    background: rgba(31, 111, 235, 0.1);
+.alert-tip {
+    border-left-color: #238636 !important;
+    background: rgba(35, 134, 54, 0.1) !important;
 }
 
-.markdown-content blockquote:has(p:first-child:contains("[!WARNING]")) {
-    border-left-color: #d29922;
-    background: rgba(210, 153, 34, 0.1);
+.alert-important {
+    border-left-color: #8957e5 !important;
+    background: rgba(137, 87, 229, 0.1) !important;
 }
 
-.markdown-content blockquote:has(p:first-child:contains("[!TIP]")) {
-    border-left-color: #238636;
-    background: rgba(35, 134, 54, 0.1);
+.alert-warning {
+    border-left-color: #d29922 !important;
+    background: rgba(210, 153, 34, 0.1) !important;
+}
+
+.alert-caution {
+    border-left-color: #cf222e !important;
+    background: rgba(207, 34, 46, 0.1) !important;
+}
+
+/* Mermaid Rendering Fix */
+.mermaid {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 10px;
+    margin: 15px 0;
+    display: flex;
+    justify-content: center;
 }
 
 /* Custom Scrollbar */

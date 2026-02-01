@@ -10,10 +10,42 @@ let isStreaming = false;
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 AI Assistant inicializado');
+    setupMarked(); // Configurar renderizador
     loadConversations();
     loadConfig();
     connectWebSocket();
 });
+
+// Configuração do Marked.js
+function setupMarked() {
+    const renderer = new marked.Renderer();
+
+    // Renderizador de código para Mermaid
+    renderer.code = (code, language) => {
+        if (language === 'mermaid') {
+            return `<div class="mermaid">${code}</div>`;
+        }
+        return `<pre><code class="language-${language}">${code}</code></pre>`;
+    };
+
+    // Renderizador de blockquote para Alertas GitHub
+    renderer.blockquote = (quote) => {
+        let type = '';
+        if (quote.includes('[!NOTE]')) type = 'note';
+        else if (quote.includes('[!TIP]')) type = 'tip';
+        else if (quote.includes('[!IMPORTANT]')) type = 'important';
+        else if (quote.includes('[!WARNING]')) type = 'warning';
+        else if (quote.includes('[!CAUTION]')) type = 'caution';
+
+        if (type) {
+            const cleanQuote = quote.replace(`[!${type.toUpperCase()}]`, '');
+            return `<blockquote class="alert alert-${type}">${cleanQuote}</blockquote>`;
+        }
+        return `<blockquote>${quote}</blockquote>`;
+    };
+
+    marked.setOptions({ renderer });
+}
 
 // WebSocket
 function connectWebSocket() {
@@ -33,6 +65,10 @@ function connectWebSocket() {
         } else if (data.type === 'done') {
             isStreaming = false;
             Prism.highlightAll();
+            // Processar Mermaid após a resposta completa
+            mermaid.run({
+                nodes: document.querySelectorAll('.mermaid'),
+            });
         }
     };
 
