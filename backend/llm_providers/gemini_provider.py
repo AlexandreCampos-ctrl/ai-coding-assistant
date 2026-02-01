@@ -29,14 +29,50 @@ class GeminiProvider(BaseLLMProvider):
 
     def _setup_model(self, tools: list = None):
         """Configura a instância do modelo com ferramentas se disponíveis"""
+        gemini_tools = None
+        if tools:
+            # Converter do formato OpenAI (usado no ToolRegistry) para o formato Gemini
+            gemini_tools = []
+            for tool in tools:
+                if isinstance(tool, dict) and tool.get("type") == "function":
+                    func_declaration = tool["function"]
+                    
+                    # Normalizar o schema recursivamente (OpenAI usa lowercase, Gemini quer uppercase)
+                    if "parameters" in func_declaration:
+                        func_declaration["parameters"] = self._normalize_schema(func_declaration["parameters"])
+                    
+                    gemini_tools.append(func_declaration)
+                else:
+                    gemini_tools.append(tool)
+        
         self.model_instance = genai.GenerativeModel(
             model_name=self.model,
             generation_config={
                 'temperature': self.temperature,
                 'max_output_tokens': self.max_tokens,
             },
-            tools=tools
+            tools=gemini_tools
         )
+
+    def _normalize_schema(self, schema: Dict[str, Any]) -> Dict[str, Any]:
+        """Converte recursivamente os tipos do schema para uppercase (padrão Gemini)"""
+        if not isinstance(schema, dict):
+            return schema
+            
+        new_schema = schema.copy()
+        
+        if "type" in new_schema and isinstance(new_schema["type"], str):
+            # "object" -> "OBJECT", "string" -> "STRING", etc.
+            new_schema["type"] = new_schema["type"].upper()
+            
+        if "properties" in new_schema and isinstance(new_schema["properties"], dict):
+            for prop_name, prop_data in new_schema["properties"].items():
+                new_schema["properties"][prop_name] = self._normalize_schema(prop_data)
+                
+        if "items" in new_schema and isinstance(new_schema["items"], dict):
+            new_schema["items"] = self._normalize_schema(new_schema["items"])
+            
+        return new_schema
     
     @property
     def name(self) -> str:
@@ -47,20 +83,44 @@ class GeminiProvider(BaseLLMProvider):
         gemini_messages = []
         
         for msg in messages:
-            role = msg['role']
-            content = msg['content']
+            role = msg.get('role')
+            content = msg.get('content', '')
+            tool_calls = msg.get('tool_calls', [])
             
             # Gemini usa 'user' e 'model' como roles
             if role == 'system':
-                # System prompts vão como primeira mensagem do usuário
                 gemini_messages.append({
                     'role': 'user',
                     'parts': [f"[SYSTEM] {content}"]
                 })
             elif role == 'assistant':
+                parts = []
+                if content:
+                    parts.append(content)
+                
+                # Adicionar chamadas de função se houver
+                for tc in tool_calls:
+                    parts.append(genai.protos.Part(
+                        function_call=genai.protos.FunctionCall(
+                            name=tc['name'],
+                            args=tc['arguments']
+                        )
+                    ))
+                
                 gemini_messages.append({
                     'role': 'model',
-                    'parts': [content]
+                    'parts': parts
+                })
+            elif role == 'tool':
+                # Resposta de ferramenta
+                gemini_messages.append({
+                    'role': 'function',
+                    'parts': [genai.protos.Part(
+                        function_response=genai.protos.FunctionResponse(
+                            name=msg.get('name', 'unknown'),
+                            response={'result': content}
+                        )
+                    )]
                 })
             else:  # user
                 gemini_messages.append({

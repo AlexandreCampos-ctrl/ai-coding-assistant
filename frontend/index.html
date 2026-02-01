@@ -24,77 +24,81 @@
 </head>
 
 <body>
-    <div class="container">
+    <div class="container obsidian-elite">
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar glass-sidebar">
             <div class="logo">
-                <h1>🤖 AI Assistant</h1>
+                <h1>💎 Antigravity</h1>
             </div>
 
             <button class="new-chat-btn" onclick="newChat()">
-                ✨ Nova Conversa
+                <span class="btn-icon">✨</span> Nova Conversa
             </button>
 
             <div class="conversations-list" id="conversations-list">
                 <!-- Conversas serão carregadas aqui -->
             </div>
 
-            <div class="settings">
-                <h3>⚙️ Configurações</h3>
+            <div class="settings glass-panel">
+                <h3>⚙️ CONFIGURAÇÕES</h3>
 
-                <label>Provider:</label>
-                <select id="provider-select" onchange="updateProvider()">
-                    <option value="gemini">Google Gemini</option>
-                    <option value="openai">OpenAI GPT</option>
-                    <option value="ollama">Ollama (Local)</option>
-                </select>
+                <div class="setting-group">
+                    <label>IA PROVIDER</label>
+                    <select id="provider-select" onchange="updateProvider()">
+                        <option value="gemini">Google Gemini 1.5</option>
+                        <option value="openai">OpenAI GPT-4o</option>
+                        <option value="ollama">Ollama Sovereign</option>
+                    </select>
+                </div>
 
-                <label>Temperature:</label>
-                <input type="range" id="temperature" min="0" max="1" step="0.1" value="0.7"
-                    oninput="updateTemperature()">
-                <span id="temp-value">0.7</span>
+                <div class="setting-group">
+                    <label>TEMPERATURE: <span id="temp-value">0.7</span></label>
+                    <input type="range" id="temperature" min="0" max="1" step="0.1" value="0.7"
+                        oninput="updateTemperature()">
+                </div>
             </div>
         </aside>
 
-        <!-- Main Chat -->
+        <!-- Main Chat Area -->
         <main class="chat-area">
-            <div class="chat-header">
-                <h2 id="chat-title">Nova Conversa</h2>
-                <div class="status">
-                    <span id="status-indicator">●</span>
-                    <span id="status-text">Conectado</span>
+            <header class="chat-header glass-header">
+                <div class="header-desc">
+                    <h2 id="chat-title">Obsidian Elite v4.0</h2>
+                    <div class="status">
+                        <span id="status-indicator">●</span>
+                        <span id="status-text">Nova Sessão</span>
+                    </div>
                 </div>
-            </div>
+                <div class="header-actions">
+                    <!-- Actions will go here -->
+                </div>
+            </header>
 
             <div class="messages" id="messages">
                 <div class="welcome-message">
-                    <h2>👋 Olá! Sou seu assistente de programação</h2>
-                    <p>Posso ajudá-lo com:</p>
-                    <ul>
-                        <li>📝 Escrever e explicar código</li>
-                        <li>🔧 Criar e editar arquivos</li>
-                        <li>▶️ Executar código Python</li>
-                        <li>🐛 Depurar problemas</li>
-                    </ul>
-                    <p>Comece fazendo uma pergunta ou pedindo algo!</p>
+                    <div class="welcome-icon">🏺</div>
+                    <h2>Soberania Digital</h2>
+                    <p>Antigravity Arquiteto v4.0. Pronto para construir o impossível.</p>
                 </div>
             </div>
 
-            <!-- Dashboard de Terminal (Fase 4) -->
+            <!-- Terminal Dashboard (Fase 4 - Unified) -->
             <div id="terminal-dashboard" class="terminal-dashboard glass-panel">
                 <div class="terminal-header">
-                    <span>💻 Terminal Output</span>
-                    <button class="clear-terminal" onclick="terminalDashboard.clear()">🗑️</button>
+                    <span><i class="icon">💻</i> Terminal Dashboard</span>
+                    <button class="clear-terminal" onclick="terminalDashboard.clear()">RESET</button>
                 </div>
                 <div id="terminal-content" class="terminal-content"></div>
             </div>
 
-            <div class="input-area">
-                <textarea id="user-input" placeholder="Digite sua mensagem... (Shift+Enter para nova linha)"
-                    onkeydown="handleKeyPress(event)"></textarea>
-                <button onclick="sendMessage()" id="send-btn">
-                    ➤ Enviar
-                </button>
+            <div class="input-container glass-panel">
+                <div class="input-area">
+                    <textarea id="user-input" placeholder="Comande seu arquiteto..."
+                        onkeydown="handleKeyPress(event)"></textarea>
+                    <button onclick="sendMessage()" id="send-btn">
+                        ENVIAR
+                    </button>
+                </div>
             </div>
         </main>
     </div>
