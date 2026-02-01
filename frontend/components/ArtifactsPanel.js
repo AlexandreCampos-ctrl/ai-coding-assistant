@@ -33,7 +33,7 @@ class ArtifactsPanel {
     createPanel() {
         const panel = document.createElement('div');
         panel.id = 'artifacts-panel';
-        panel.className = 'artifacts-panel artifacts-panel-hidden';
+        panel.className = 'artifacts-panel glass-panel artifacts-panel-hidden';
         panel.innerHTML = `
             <div class="artifacts-header">
                 <h2>📄 Artifacts</h2>

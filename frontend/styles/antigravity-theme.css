@@ -12,6 +12,68 @@
     transition: all 0.3s ease;
 }
 
+/* Glassmorphism Classes */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* GitHub Style Alerts */
+.markdown-content blockquote {
+    padding: 0.5rem 1rem;
+    color: #8b949e;
+    border-left: 0.25rem solid #30363d;
+    margin: 1rem 0;
+}
+
+.markdown-content blockquote p {
+    margin: 0;
+}
+
+/* Alert Variants */
+.markdown-content blockquote:has(strong:contains("!IMPORTANT")),
+.markdown-content blockquote:has(p:first-child:contains("[!IMPORTANT]")) {
+    border-left-color: #cf222e;
+    background: rgba(207, 34, 46, 0.1);
+}
+
+.markdown-content blockquote:has(p:first-child:contains("[!NOTE]")) {
+    border-left-color: #1f6feb;
+    background: rgba(31, 111, 235, 0.1);
+}
+
+.markdown-content blockquote:has(p:first-child:contains("[!WARNING]")) {
+    border-left-color: #d29922;
+    background: rgba(210, 153, 34, 0.1);
+}
+
+.markdown-content blockquote:has(p:first-child:contains("[!TIP]")) {
+    border-left-color: #238636;
+    background: rgba(35, 134, 54, 0.1);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(78, 205, 196, 0.3);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(78, 205, 196, 0.5);
+}
+
 #task-progress-container.task-progress-hidden {
     opacity: 0;
     pointer-events: none;

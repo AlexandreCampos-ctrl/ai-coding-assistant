@@ -10,7 +10,7 @@ class TaskProgress {
         if (!this.container) {
             this.container = document.createElement('div');
             this.container.id = 'task-progress-container';
-            this.container.className = 'task-progress-hidden';
+            this.container.className = 'task-progress-hidden glass-panel';
             document.body.appendChild(this.container);
         }
 

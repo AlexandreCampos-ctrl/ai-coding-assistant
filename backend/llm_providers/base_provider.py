@@ -4,6 +4,8 @@ Base class para providers de LLM
 
 from abc import ABC, abstractmethod
 from typing import List, Dict, AsyncGenerator, Optional
+from skills.skill_manager import SkillManager
+import os
 
 
 class BaseLLMProvider(ABC):
@@ -15,6 +17,7 @@ class BaseLLMProvider(ABC):
         self.model = self.llm_config['model']
         self.temperature = self.llm_config['temperature']
         self.max_tokens = self.llm_config['max_tokens']
+        self.skill_manager = SkillManager(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "skills"))
     
     @property
     @abstractmethod
@@ -79,6 +82,8 @@ Contendo o conteúdo markdown logo abaixo.
 - Explique o "porquê" das decisões técnicas.
 - Use blocos de código com linguagem especificada.
 - Fale em Português do Brasil.
+
+{self.skill_manager.get_skill_prompts()}
 
 Sempre que iniciar uma nova fase, atualize a [[TASK_UPDATE]]."""
     
