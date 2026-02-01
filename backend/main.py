@@ -26,6 +26,8 @@ from config_loader import load_config
 from artifacts import ArtifactManager, ArtifactCreate, ArtifactUpdate, ArtifactResponse
 from task_tracking import task_manager, TaskMode
 from memory.rag.project_indexer import ProjectIndexer
+from agents.agent_manager import AgentManager
+from agents.proactive_analyzer import ProactiveAnalyzer
 
 # Inicializar FastAPI
 app = FastAPI(title="AI Coding Assistant", version="1.0.0")
@@ -53,6 +55,8 @@ config = load_config()
 # Gerenciadores
 conversation_manager = ConversationManager()
 tool_registry = ToolRegistry()
+agent_manager = AgentManager(config)
+proactive_analyzer = ProactiveAnalyzer(os.getcwd())
 
 # Artifact manager por conversação (será criado sob demanda)
 artifact_managers = {}
@@ -195,6 +199,13 @@ async def chat(request: ChatRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+async def send_proactive_suggestion(websocket: WebSocket, data: Dict):
+    """Envia sugestões proativas para o cliente conectado"""
+    try:
+        await websocket.send_json(data)
+    except:
+        pass
+
 @app.websocket("/ws/chat")
 async def websocket_chat(websocket: WebSocket):
     """WebSocket para streaming"""
@@ -212,8 +223,13 @@ async def websocket_chat(websocket: WebSocket):
             # Obter provider
             provider = get_llm_provider()
             
+            # Iniciar análise proativa em background para esta conexão
+            analyzer_task = asyncio.create_task(
+                proactive_analyzer.run_periodic_check(lambda d: send_proactive_suggestion(websocket, d))
+            )
+            
             # Registrar ferramentas de execução para esta conversa
-            tool_registry.register_execution_tools(conversation_id, provider=provider)
+            tool_registry.register_execution_tools(conversation_id, provider=provider, agent_manager=agent_manager)
             
             # Obter histórico
             history = conversation_manager.get_messages(conversation_id)

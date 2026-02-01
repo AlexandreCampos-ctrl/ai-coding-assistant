@@ -11,10 +11,41 @@ let isStreaming = false;
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 AI Assistant inicializado');
     setupMarked(); // Configurar renderizador
+    createNotificationContainer(); // Criar container de alertas
     loadConversations();
     loadConfig();
     connectWebSocket();
 });
+
+// Container de Notificações
+function createNotificationContainer() {
+    if (!document.getElementById('notification-container')) {
+        const container = document.createElement('div');
+        container.id = 'notification-container';
+        container.className = 'notification-container';
+        document.body.appendChild(container);
+    }
+}
+
+function showProactiveSuggestion(suggestion) {
+    const container = document.getElementById('notification-container');
+    const toast = document.createElement('div');
+    toast.className = `proactive-toast alert-${suggestion.priority} glass-panel`;
+    toast.innerHTML = `
+        <div class="toast-header">
+            <span>✨ Sugestão Proativa</span>
+            <button onclick="this.parentElement.parentElement.remove()">✕</button>
+        </div>
+        <div class="toast-body">
+            <p>${suggestion.message}</p>
+        </div>
+    `;
+
+    container.appendChild(toast);
+
+    // Auto-remover após 10 segundos
+    setTimeout(() => { if (toast.parentElement) toast.remove(); }, 10000);
+}
 
 // Configuração do Marked.js
 function setupMarked() {
@@ -70,6 +101,8 @@ function connectWebSocket() {
             if (window.terminalDashboard) {
                 window.terminalDashboard.logToolResult(data.tool, data.result);
             }
+        } else if (data.type === 'proactive_suggestion') {
+            showProactiveSuggestion(data.content);
         } else if (data.type === 'done') {
             isStreaming = false;
             Prism.highlightAll();

@@ -125,11 +125,11 @@ class ToolRegistry:
         
         return result
     
-    def register_execution_tools(self, conversation_id: str):
+    def register_execution_tools(self, conversation_id: str, provider: Optional[Any] = None, agent_manager: Optional[Any] = None):
         """Registra ferramentas de execução (terminal/browser) para uma conversa"""
         from execution.execution_tools import ExecutionTools
         
-        exec_tools = ExecutionTools(conversation_id)
+        exec_tools = ExecutionTools(conversation_id, provider=provider, agent_manager=agent_manager, tool_registry=self)
         
         self.register_tool(
             "terminal_run",
@@ -187,6 +187,65 @@ class ToolRegistry:
                 "command": {
                     "type": "string",
                     "description": "Comando a ser executado automaticamente"
+                }
+            }
+        )
+
+        self.register_tool(
+            "agent_spawn",
+            "Cria um sub-agente especialista (ex: security, tester, frontend, database)",
+            exec_tools.agent_spawn,
+            {
+                "role": {
+                    "type": "string",
+                    "description": "Papel do especialista a ser criado"
+                }
+            }
+        )
+
+        self.register_tool(
+            "agent_delegate",
+            "Envia uma tarefa para um sub-agente especialista já criado",
+            exec_tools.agent_delegate,
+            {
+                "agent_id": {
+                    "type": "string",
+                    "description": "ID do agente retornado pelo agent_spawn"
+                },
+                "task": {
+                    "type": "string",
+                    "description": "Descrição detalhada da tarefa para o especialista"
+                }
+            }
+        )
+
+        self.register_tool(
+            "agent_list",
+            "Lista todos os sub-agentes especialistas ativos",
+            exec_tools.agent_list,
+            {}
+        )
+
+        self.register_tool(
+            "create_new_tool",
+            "Cria e registra uma nova ferramenta Python dinamicamente para ganhar novas capacidades",
+            exec_tools.create_new_tool,
+            {
+                "name": {
+                    "type": "string",
+                    "description": "Nome da ferramenta (snake_case)"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Explicação clara do que a ferramenta faz"
+                },
+                "code": {
+                    "type": "string",
+                    "description": "Código Python completo da função (deve ter o mesmo nome da ferramenta ou uma função 'run')"
+                },
+                "parameters": {
+                    "type": "object",
+                    "description": "Esquema JSON dos parâmetros (type, description)"
                 }
             }
         )
