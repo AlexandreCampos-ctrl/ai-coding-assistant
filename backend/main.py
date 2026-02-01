@@ -13,21 +13,22 @@ import uvicorn
 import json
 import asyncio
 import re
+import os
 from pathlib import Path
 
 # Importações locais
-from llm_providers.base_provider import BaseLLMProvider
-from llm_providers.gemini_provider import GeminiProvider
-from llm_providers.openai_provider import OpenAIProvider
-from llm_providers.ollama_provider import OllamaProvider
-from tools.tool_registry import ToolRegistry
-from memory.conversation_manager import ConversationManager
-from config_loader import load_config
-from artifacts import ArtifactManager, ArtifactCreate, ArtifactUpdate, ArtifactResponse
-from task_tracking import task_manager, TaskMode
-from memory.rag.project_indexer import ProjectIndexer
-from agents.agent_manager import AgentManager
-from agents.proactive_analyzer import ProactiveAnalyzer
+from backend.llm_providers.base_provider import BaseLLMProvider
+from backend.llm_providers.gemini_provider import GeminiProvider
+from backend.llm_providers.openai_provider import OpenAIProvider
+from backend.llm_providers.ollama_provider import OllamaProvider
+from backend.tools.tool_registry import ToolRegistry
+from backend.memory.conversation_manager import ConversationManager
+from backend.config_loader import load_config
+from backend.artifacts import ArtifactManager, ArtifactCreate, ArtifactUpdate, ArtifactResponse
+from backend.task_tracking import task_manager, TaskMode
+from backend.memory.rag.project_indexer import ProjectIndexer
+from backend.agents.agent_manager import AgentManager
+from backend.agents.proactive_analyzer import ProactiveAnalyzer
 
 # Inicializar FastAPI
 app = FastAPI(title="AI Coding Assistant", version="1.0.0")
@@ -574,7 +575,7 @@ def main():
     print(f"📚 API Docs: http://localhost:8000/docs")
     
     uvicorn.run(
-        "main:app",
+        "backend.main:app",
         host="0.0.0.0",
         port=8000,
         reload=True,

@@ -4,7 +4,7 @@ OpenAI Provider (GPT-3.5, GPT-4)
 
 from openai import AsyncOpenAI
 from typing import List, Dict, AsyncGenerator
-from .base_provider import BaseLLMProvider
+from backend.llm_providers.base_provider import BaseLLMProvider
 import os
 
 

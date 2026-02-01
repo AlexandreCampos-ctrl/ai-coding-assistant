@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Optional
 import asyncio
 from .terminal_executor import TerminalExecutor
-from ..llm_providers.base_provider import BaseLLMProvider
+from backend.llm_providers.base_provider import BaseLLMProvider
 
 
 class AutonomousExecutor:

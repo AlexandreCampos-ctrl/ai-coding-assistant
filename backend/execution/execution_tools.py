@@ -1,8 +1,8 @@
 from .terminal_executor import TerminalExecutor
 from .browser_automator import BrowserAutomator
 from .autonomous_executor import AutonomousExecutor
-from ..memory.rag.project_indexer import ProjectIndexer
-from ..agents.agent_manager import AgentManager
+from backend.memory.rag.project_indexer import ProjectIndexer
+from backend.agents.agent_manager import AgentManager
 import os
 import importlib.util
 import sys

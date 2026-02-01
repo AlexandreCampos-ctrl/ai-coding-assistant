@@ -4,7 +4,7 @@ Ollama Provider (modelos locais)
 
 import aiohttp
 from typing import List, Dict, AsyncGenerator
-from .base_provider import BaseLLMProvider
+from backend.llm_providers.base_provider import BaseLLMProvider
 
 
 class OllamaProvider(BaseLLMProvider):

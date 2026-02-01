@@ -1,5 +1,5 @@
 from typing import List, Dict, Any, Optional
-from ..llm_providers.base_provider import BaseLLMProvider
+from backend.llm_providers.base_provider import BaseLLMProvider
 import uuid
 
 class SpecializedAgent:

@@ -8,9 +8,9 @@ import os
 from pathlib import Path
 import subprocess
 
-# Adicionar backend ao path
-backend_path = Path(__file__).parent / "backend"
-sys.path.insert(0, str(backend_path))
+# Adicionar raiz do projeto ao path
+project_root = Path(__file__).parent
+sys.path.insert(0, str(project_root))
 
 
 def check_requirements():

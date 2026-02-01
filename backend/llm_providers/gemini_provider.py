@@ -2,9 +2,12 @@
 Google Gemini Provider
 """
 
-import google.generativeai as genai
+import warnings
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=FutureWarning)
+    import google.generativeai as genai
 from typing import List, Dict, AsyncGenerator
-from .base_provider import BaseLLMProvider
+from backend.llm_providers.base_provider import BaseLLMProvider
 import os
 
 

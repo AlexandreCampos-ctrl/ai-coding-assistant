@@ -1,0 +1,1015 @@
+{
+  "files": {
+    "run.py": {
+      "size": 2796,
+      "symbols": [
+        "check_api_keys",
+        "check_requirements",
+        "start_server",
+        "main"
+      ],
+      "summary": "#!/usr/bin/env python3\n\"\"\"\nLauncher para o AI Coding Assistant\n\"\"\"\n\nimport sys\nimport os\nfrom pathlib import Path\nimport subprocess\n\n# Adicionar raiz do projeto ao path\nproject_root = Path(__file__).parent\nsys.path.insert(0, str(project_root))\n\n\ndef check_requirements():\n    \"\"\"Verifica se as depend\u00eancias est\u00e3o instaladas\"\"\"\n    print(\"\ud83d\udd0d Verificando depend\u00eancias...\")\n    \n    requirements_file = backend_path / \"requirements.txt\"\n    \n    try:\n        import fastapi\n        import uvicorn\n       "
+    },
+    "backend\\config_loader.py": {
+      "size": 2522,
+      "symbols": [
+        "save_config",
+        "load_config"
+      ],
+      "summary": "\"\"\"\nConfigura\u00e7\u00e3o do sistema\n\"\"\"\n\nimport yaml\nfrom pathlib import Path\nfrom typing import Dict, Any\n\n\ndef load_config() -> Dict[str, Any]:\n    \"\"\"Carrega configura\u00e7\u00e3o do arquivo YAML\"\"\"\n    config_path = Path(__file__).parent.parent / \"config\" / \"config.yaml\"\n    \n    # Configura\u00e7\u00e3o padr\u00e3o\n    default_config = {\n        'llm': {\n            'provider': 'gemini',  # gemini, openai, ollama\n            'model': 'gemini-pro',\n            'temperature': 0.7,\n            'max_tokens': 2000,\n           "
+    },
+    "backend\\main.py": {
+      "size": 20361,
+      "symbols": [
+        "main",
+        "get_current_task",
+        "create_artifact",
+        "websocket_chat",
+        "update_config",
+        "list_artifacts",
+        "ChatResponse",
+        "ChatRequest",
+        "delete_artifact",
+        "update_artifact",
+        "health_check",
+        "get_task_history",
+        "complete_task",
+        "get_config",
+        "chat",
+        "start_task",
+        "ConfigUpdate",
+        "send_proactive_suggestion",
+        "delete_conversation",
+        "startup_event",
+        "root",
+        "ChatMessage",
+        "execute_tool_endpoint",
+        "get_artifact",
+        "get_conversation",
+        "update_task_progress",
+        "get_llm_provider",
+        "get_artifact_manager",
+        "process_llm_tags",
+        "list_tools",
+        "list_conversations"
+      ],
+      "summary": "\"\"\"\nASSISTENTE DE IA CUSTOMIZ\u00c1VEL - Backend\nSistema modular de IA para programa\u00e7\u00e3o com suporte a m\u00faltiplos LLMs\n\"\"\"\n\nfrom fastapi import FastAPI, WebSocket, HTTPException\nfrom fastapi.middleware.cors import CORSMiddleware\nfrom fastapi.staticfiles import StaticFiles\nfrom fastapi.responses import HTMLResponse\nfrom pydantic import BaseModel\nfrom typing import List, Dict, Optional, AsyncGenerator\nimport uvicorn\nimport json\nimport asyncio\nimport re\nimport os\nfrom pathlib import Path\n\n# Importa\u00e7\u00f5es lo"
+    },
+    "backend\\__init__.py": {
+      "size": 79,
+      "symbols": [],
+      "summary": "\"\"\"\n__init__ para backend\n\"\"\"\n\nfrom .main import app\n\n__all__ = ['app']\n"
+    },
+    "backend\\agents\\agent_manager.py": {
+      "size": 3058,
+      "symbols": [
+        "think",
+        "spawn_agent",
+        "AgentManager",
+        "SpecializedAgent",
+        "__init__",
+        "list_agents",
+        "delegate_to_agent"
+      ],
+      "summary": "from typing import List, Dict, Any, Optional\nfrom backend.llm_providers.base_provider import BaseLLMProvider\nimport uuid\n\nclass SpecializedAgent:\n    \"\"\"Um agente especialista com um papel definido e seu pr\u00f3prio provedor LLM\"\"\"\n    \n    def __init__(self, agent_id: str, role: str, system_prompt: str, provider: BaseLLMProvider):\n        self.agent_id = agent_id\n        self.role = role\n        self.system_prompt = system_prompt\n        self.provider = provider\n        self.messages = [{\"role\": \"s"
+    },
+    "backend\\agents\\proactive_analyzer.py": {
+      "size": 3506,
+      "symbols": [
+        "_check_file",
+        "analyze_project",
+        "ProactiveAnalyzer",
+        "run_periodic_check",
+        "__init__"
+      ],
+      "summary": "import os\nimport re\nfrom pathlib import Path\nfrom typing import List, Dict, Any\nimport asyncio\n\nclass ProactiveAnalyzer:\n    \"\"\"Monitora o projeto em background e gera sugest\u00f5es proativas\"\"\"\n\n    def __init__(self, project_root: str):\n        self.project_root = Path(project_root)\n        self.suggestions = []\n\n    async def analyze_project(self) -> List[Dict[str, str]]:\n        \"\"\"Realiza uma varredura em busca de melhorias \u00f3bvias\"\"\"\n        self.suggestions = []\n        \n        for root, dirs"
+    },
+    "backend\\artifacts\\artifact_manager.py": {
+      "size": 6980,
+      "symbols": [
+        "get_artifact",
+        "create_artifact",
+        "list_artifacts",
+        "__init__",
+        "ArtifactManager",
+        "_save_metadata",
+        "delete_artifact",
+        "update_artifact",
+        "_load_metadata"
+      ],
+      "summary": "\"\"\"\nGerenciador de Artifacts (task.md, implementation_plan.md, walkthrough.md)\n\"\"\"\nfrom pathlib import Path\nfrom typing import Dict, List, Optional\nfrom datetime import datetime\nimport json\n\n\nclass ArtifactManager:\n    \"\"\"Gerencia artifacts do assistente (task.md, walkthrough.md, etc)\"\"\"\n    \n    VALID_TYPES = [\"task\", \"implementation_plan\", \"walkthrough\", \"other\"]\n    \n    def __init__(self, conversation_id: str):\n        \"\"\"\n        Inicializa o gerenciador de artifacts para uma conversa\u00e7\u00e3o\n  "
+    },
+    "backend\\artifacts\\models.py": {
+      "size": 980,
+      "symbols": [
+        "ArtifactUpdate",
+        "ArtifactCreate",
+        "ArtifactResponse"
+      ],
+      "summary": "\"\"\"\nModelos de dados para artifacts\n\"\"\"\nfrom pydantic import BaseModel, Field\nfrom typing import Optional, Literal\n\n\nclass ArtifactCreate(BaseModel):\n    \"\"\"Modelo para criar artifact\"\"\"\n    name: str = Field(..., description=\"Nome do artifact (ex: task.md)\")\n    content: str = Field(..., description=\"Conte\u00fado do artifact\")\n    artifact_type: Literal[\"task\", \"implementation_plan\", \"walkthrough\", \"other\"] = \"other\"\n    summary: str = Field(\"\", description=\"Resumo do artifact\")\n\n\nclass ArtifactUpd"
+    },
+    "backend\\artifacts\\__init__.py": {
+      "size": 275,
+      "symbols": [],
+      "summary": "\"\"\"\nArtifacts package - Sistema de gerenciamento de artifacts\n\"\"\"\nfrom .artifact_manager import ArtifactManager\nfrom .models import ArtifactCreate, ArtifactUpdate, ArtifactResponse\n\n__all__ = [\"ArtifactManager\", \"ArtifactCreate\", \"ArtifactUpdate\", \"ArtifactResponse\"]\n"
+    },
+    "backend\\execution\\autonomous_executor.py": {
+      "size": 2803,
+      "symbols": [
+        "__init__",
+        "run_with_retry",
+        "_ask_for_correction",
+        "AutonomousExecutor"
+      ],
+      "summary": "from typing import List, Dict, Any, Optional\nimport asyncio\nfrom .terminal_executor import TerminalExecutor\nfrom backend.llm_providers.base_provider import BaseLLMProvider\n\n\nclass AutonomousExecutor:\n    \"\"\"Gerencia loops aut\u00f4nomos de execu\u00e7\u00e3o e corre\u00e7\u00e3o\"\"\"\n\n    def __init__(self, provider: BaseLLMProvider, terminal: TerminalExecutor):\n        self.provider = provider\n        self.terminal = terminal\n        self.max_retries = 3\n\n    async def run_with_retry(self, command: str, context: str = \"\""
+    },
+    "backend\\execution\\browser_automator.py": {
+      "size": 1467,
+      "symbols": [
+        "__init__",
+        "BrowserAutomator",
+        "scrape_text",
+        "screenshot"
+      ],
+      "summary": "from playwright.async_api import async_playwright\nimport os\nfrom pathlib import Path\nfrom datetime import datetime\n\n\nclass BrowserAutomator:\n    \"\"\"Automatiza o navegador para screenshots e extra\u00e7\u00e3o de dados\"\"\"\n\n    def __init__(self, artifacts_dir: str):\n        self.artifacts_dir = Path(artifacts_dir)\n        self.artifacts_dir.mkdir(parents=True, exist_ok=True)\n\n    async def screenshot(self, url: str, filename: str = None) -> str:\n        \"\"\"Tira um print de uma URL e salva como artifact\"\"\"\n"
+    },
+    "backend\\execution\\execution_tools.py": {
+      "size": 5895,
+      "symbols": [
+        "agent_delegate",
+        "web_read",
+        "project_search",
+        "terminal_run",
+        "agent_spawn",
+        "autonomous_terminal_run",
+        "ExecutionTools",
+        "__init__",
+        "agent_list",
+        "web_screenshot",
+        "create_new_tool"
+      ],
+      "summary": "from .terminal_executor import TerminalExecutor\nfrom .browser_automator import BrowserAutomator\nfrom .autonomous_executor import AutonomousExecutor\nfrom backend.memory.rag.project_indexer import ProjectIndexer\nfrom backend.agents.agent_manager import AgentManager\nimport os\nimport importlib.util\nimport sys\n\n\nclass ExecutionTools:\n    \"\"\"Wrapper para expor capacidades de execu\u00e7\u00e3o ao ToolRegistry\"\"\"\n    \n    def __init__(self, conversation_id: str, provider: Optional[BaseLLMProvider] = None, agent_"
+    },
+    "backend\\execution\\terminal_executor.py": {
+      "size": 2761,
+      "symbols": [
+        "enqueue",
+        "execute",
+        "_merge_streams",
+        "TerminalExecutor",
+        "__init__",
+        "read_stream"
+      ],
+      "summary": "import asyncio\nimport subprocess\nimport shlex\nimport os\nfrom typing import AsyncGenerator, Dict, List, Optional\n\n\nclass TerminalExecutor:\n    \"\"\"Executa comandos de shell de forma segura e ass\u00edncrona\"\"\"\n    \n    # Comandos proibidos por seguran\u00e7a no MVP\n    BANNED_COMMANDS = ['rm -rf /', 'format', 'del /s /q', 'rd /s /q']\n\n    def __init__(self, cwd: Optional[str] = None):\n        self.cwd = cwd or os.getcwd()\n\n    async def execute(self, command: str) -> AsyncGenerator[Dict, None]:\n        \"\"\"\n"
+    },
+    "backend\\llm_providers\\base_provider.py": {
+      "size": 3458,
+      "symbols": [
+        "para",
+        "_format_messages",
+        "__init__",
+        "_build_system_prompt",
+        "BaseLLMProvider",
+        "stream_generate",
+        "name",
+        "generate"
+      ],
+      "summary": "\"\"\"\nBase class para providers de LLM\n\"\"\"\n\nfrom abc import ABC, abstractmethod\nfrom typing import List, Dict, AsyncGenerator, Optional\nfrom backend.skills.skill_manager import SkillManager\nimport os\n\n\nclass BaseLLMProvider(ABC):\n    \"\"\"Interface base para todos os providers de LLM\"\"\"\n    \n    def __init__(self, config: Dict):\n        self.config = config\n        self.llm_config = config['llm']\n        self.model = self.llm_config['model']\n        self.temperature = self.llm_config['temperature']\n"
+    },
+    "backend\\llm_providers\\gemini_provider.py": {
+      "size": 5046,
+      "symbols": [
+        "GeminiProvider",
+        "_setup_model",
+        "__init__",
+        "stream_generate",
+        "name",
+        "_convert_messages",
+        "generate"
+      ],
+      "summary": "\"\"\"\nGoogle Gemini Provider\n\"\"\"\n\nimport warnings\nwith warnings.catch_warnings():\n    warnings.filterwarnings(\"ignore\", category=FutureWarning)\n    import google.generativeai as genai\nfrom typing import List, Dict, AsyncGenerator\nfrom backend.llm_providers.base_provider import BaseLLMProvider\nimport os\n\n\nclass GeminiProvider(BaseLLMProvider):\n    \"\"\"Provider para Google Gemini\"\"\"\n    \n    def __init__(self, config: Dict):\n        super().__init__(config)\n        \n        # Configurar API key\n     "
+    },
+    "backend\\llm_providers\\ollama_provider.py": {
+      "size": 3641,
+      "symbols": [
+        "_convert_to_prompt",
+        "__init__",
+        "stream_generate",
+        "name",
+        "OllamaProvider",
+        "generate"
+      ],
+      "summary": "\"\"\"\nOllama Provider (modelos locais)\n\"\"\"\n\nimport aiohttp\nfrom typing import List, Dict, AsyncGenerator\nfrom backend.llm_providers.base_provider import BaseLLMProvider\n\n\nclass OllamaProvider(BaseLLMProvider):\n    \"\"\"Provider para Ollama (modelos locais)\"\"\"\n    \n    def __init__(self, config: Dict):\n        super().__init__(config)\n        self.base_url = \"http://localhost:11434\"  # URL padr\u00e3o do Ollama\n    \n    @property\n    def name(self) -> str:\n        return \"ollama\"\n    \n    async def genera"
+    },
+    "backend\\llm_providers\\openai_provider.py": {
+      "size": 2378,
+      "symbols": [
+        "OpenAIProvider",
+        "__init__",
+        "stream_generate",
+        "name",
+        "generate"
+      ],
+      "summary": "\"\"\"\nOpenAI Provider (GPT-3.5, GPT-4)\n\"\"\"\n\nfrom openai import AsyncOpenAI\nfrom typing import List, Dict, AsyncGenerator\nfrom backend.llm_providers.base_provider import BaseLLMProvider\nimport os\n\n\nclass OpenAIProvider(BaseLLMProvider):\n    \"\"\"Provider para OpenAI GPT models\"\"\"\n    \n    def __init__(self, config: Dict):\n        super().__init__(config)\n        \n        # Configurar API key\n        api_key = self.llm_config['api_keys'].get('openai') or os.getenv('OPENAI_API_KEY')\n        if not api_"
+    },
+    "backend\\llm_providers\\__init__.py": {
+      "size": 331,
+      "symbols": [],
+      "summary": "\"\"\"\n__init__ para llm_providers\n\"\"\"\n\nfrom .base_provider import BaseLLMProvider\nfrom .gemini_provider import GeminiProvider\nfrom .openai_provider import OpenAIProvider\nfrom .ollama_provider import OllamaProvider\n\n__all__ = [\n    'BaseLLMProvider',\n    'GeminiProvider',\n    'OpenAIProvider',\n    'OllamaProvider',\n]\n"
+    },
+    "backend\\memory\\conversation_manager.py": {
+      "size": 5928,
+      "symbols": [
+        "_init_database",
+        "ConversationManager",
+        "create_conversation",
+        "__init__",
+        "add_message",
+        "delete_conversation",
+        "get_context_window",
+        "list_conversations",
+        "get_messages",
+        "update_conversation_title"
+      ],
+      "summary": "\"\"\"\nGerenciador de conversas e mem\u00f3ria\n\"\"\"\n\nimport sqlite3\nfrom pathlib import Path\nfrom typing import List, Dict, Optional\nimport json\nimport uuid\nfrom datetime import datetime\n\n\nclass ConversationManager:\n    \"\"\"Gerencia hist\u00f3rico de conversas com SQLite\"\"\"\n    \n    def __init__(self, db_path: Optional[str] = None):\n        if db_path is None:\n            data_dir = Path(__file__).parent.parent.parent / \"data\"\n            data_dir.mkdir(exist_ok=True)\n            db_path = str(data_dir / \"conv"
+    },
+    "backend\\memory\\__init__.py": {
+      "size": 126,
+      "symbols": [],
+      "summary": "\"\"\"\n__init__ para memory\n\"\"\"\n\nfrom .conversation_manager import ConversationManager\n\n__all__ = ['ConversationManager']\n"
+    },
+    "backend\\memory\\rag\\project_indexer.py": {
+      "size": 3260,
+      "symbols": [
+        "ProjectIndexer",
+        "index_project",
+        "__init__",
+        "search_keyword",
+        "search_symbols",
+        "_index_file",
+        "load_index",
+        "save_index"
+      ],
+      "summary": "import os\nimport json\nimport re\nfrom pathlib import Path\nfrom typing import List, Dict, Any\n\n\nclass ProjectIndexer:\n    \"\"\"Indexador leve de projeto para busca de s\u00edmbolos e contexto\"\"\"\n\n    def __init__(self, project_root: str):\n        self.project_root = Path(project_root)\n        self.index_file = self.project_root / \".brain\" / \"project_index.json\"\n        self.index_file.parent.mkdir(parents=True, exist_ok=True)\n        self.index = {\n            \"files\": {},\n            \"symbols\": {} # {na"
+    },
+    "backend\\skills\\skill_manager.py": {
+      "size": 1765,
+      "symbols": [
+        "load_skills",
+        "__init__",
+        "SkillManager",
+        "_parse_skill",
+        "list_skills",
+        "get_skill_prompts"
+      ],
+      "summary": "import os\nfrom pathlib import Path\nfrom typing import Dict, List, Optional\nimport yaml\n\n\nclass SkillManager:\n    \"\"\"Gerencia as Skills do assistente (instru\u00e7\u00f5es especializadas)\"\"\"\n\n    def __init__(self, skills_dir: str = \"skills\"):\n        self.skills_dir = Path(skills_dir)\n        self.skills_dir.mkdir(parents=True, exist_ok=True)\n        self.skills: Dict[str, Dict] = {}\n        self.load_skills()\n\n    def load_skills(self):\n        \"\"\"Carrega todas as skills do diret\u00f3rio\"\"\"\n        if not se"
+    },
+    "backend\\task_tracking\\task_manager.py": {
+      "size": 4181,
+      "symbols": [
+        "update_progress",
+        "add_subtask",
+        "start_task",
+        "get_history",
+        "Task",
+        "__init__",
+        "complete_task",
+        "TaskManager",
+        "get_current"
+      ],
+      "summary": "\"\"\"\nGerenciador de Tasks e progresso\n\"\"\"\nfrom typing import Dict, List, Optional, Literal\nfrom datetime import datetime\nfrom pydantic import BaseModel\n\n\nTaskMode = Literal[\"planning\", \"execution\", \"verification\"]\n\n\nclass Task(BaseModel):\n    \"\"\"Modelo de Task\"\"\"\n    name: str\n    mode: TaskMode\n    status: str\n    progress: int  # 0-100\n    subtasks: List[str] = []\n    started_at: str\n    updated_at: str\n\n\nclass TaskManager:\n    \"\"\"Gerencia estado de tasks e progresso\"\"\"\n    \n    def __init__(se"
+    },
+    "backend\\task_tracking\\__init__.py": {
+      "size": 153,
+      "symbols": [],
+      "summary": "\"\"\"\nTask Tracking package\n\"\"\"\nfrom .task_manager import TaskManager, task_manager, TaskMode\n\n__all__ = [\"TaskManager\", \"task_manager\", \"TaskMode\"]\n"
+    },
+    "backend\\tools\\code_executor.py": {
+      "size": 3473,
+      "symbols": [
+        "execute_python_safe",
+        "timeout_handler",
+        "time_limit",
+        "TimeoutError",
+        "execute_python"
+      ],
+      "summary": "\"\"\"\nExecutor de c\u00f3digo Python em sandbox\n\"\"\"\n\nfrom RestrictedPython import compile_restricted, safe_globals\nfrom RestrictedPython.Guards import guarded_iter_unpack_sequence, safer_getattr\nimport sys\nfrom io import StringIO\nimport signal\nfrom contextlib import contextmanager\n\n\n# Timeout handler\nclass TimeoutError(Exception):\n    pass\n\n\ndef timeout_handler(signum, frame):\n    raise TimeoutError(\"C\u00f3digo excedeu o tempo limite de execu\u00e7\u00e3o\")\n\n\n@contextmanager\ndef time_limit(seconds):\n    \"\"\"Context m"
+    },
+    "backend\\tools\\file_operations.py": {
+      "size": 2329,
+      "symbols": [
+        "delete_file",
+        "create_directory",
+        "read_file",
+        "write_file",
+        "list_files"
+      ],
+      "summary": "\"\"\"\nFerramentas de opera\u00e7\u00f5es de arquivo\n\"\"\"\n\nfrom pathlib import Path\nfrom typing import List, Dict\n\n\ndef read_file(path: str) -> str:\n    \"\"\"L\u00ea o conte\u00fado de um arquivo\"\"\"\n    try:\n        file_path = Path(path)\n        if not file_path.exists():\n            return f\"Erro: Arquivo '{path}' n\u00e3o existe\"\n        \n        content = file_path.read_text(encoding='utf-8')\n        return content\n    \n    except Exception as e:\n        return f\"Erro ao ler arquivo: {str(e)}\"\n\n\ndef write_file(path: str, "
+    },
+    "backend\\tools\\tool_registry.py": {
+      "size": 8784,
+      "symbols": [
+        "class",
+        "_register_built_in_tools",
+        "register_tool",
+        "__init__",
+        "get_available_tools",
+        "get_tools_for_llm",
+        "Tool",
+        "execute_tool",
+        "register_execution_tools",
+        "ToolRegistry",
+        "import"
+      ],
+      "summary": "\"\"\"\nSistema de registro e execu\u00e7\u00e3o de ferramentas\n\"\"\"\n\nfrom typing import Dict, Callable, Any, Optional\nfrom dataclasses import dataclass\nimport asyncio\n\n\n@dataclass\nclass Tool:\n    \"\"\"Defini\u00e7\u00e3o de uma ferramenta\"\"\"\n    name: str\n    description: str\n    function: Callable\n    parameters: Dict[str, Any]\n\n\nclass ToolRegistry:\n    \"\"\"Registro central de ferramentas dispon\u00edveis\"\"\"\n    \n    def __init__(self):\n        self.tools: Dict[str, Tool] = {}\n        self._register_built_in_tools()\n    \n    "
+    },
+    "backend\\tools\\__init__.py": {
+      "size": 342,
+      "symbols": [],
+      "summary": "\"\"\"\n__init__ para tools\n\"\"\"\n\nfrom .file_operations import read_file, write_file, list_files, create_directory\nfrom .code_executor import execute_python\nfrom .tool_registry import ToolRegistry\n\n__all__ = [\n    'read_file',\n    'write_file',\n    'list_files',\n    'create_directory',\n    'execute_python',\n    'ToolRegistry',\n]\n"
+    },
+    "frontend\\app.js": {
+      "size": 9907,
+      "symbols": [
+        "currentText",
+        "messages",
+        "data",
+        "type",
+        "toast",
+        "div",
+        "contentDiv",
+        "indicator",
+        "newText",
+        "isStreaming",
+        "messagesDiv",
+        "container",
+        "response",
+        "listDiv",
+        "provider",
+        "messageDiv",
+        "html",
+        "item",
+        "ws",
+        "wsUrl",
+        "renderer",
+        "message",
+        "conversations",
+        "currentConversationId",
+        "assistantMessageDiv",
+        "config",
+        "temperature",
+        "cleanQuote",
+        "lastMessage",
+        "input",
+        "avatar"
+      ],
+      "summary": "/**\n * AI Coding Assistant - Frontend JavaScript\n */\n\n// Estado global\nlet currentConversationId = null;\nlet ws = null;\nlet isStreaming = false;\n\n// Inicializa\u00e7\u00e3o\ndocument.addEventListener('DOMContentLoaded', () => {\n    console.log('\ud83d\ude80 AI Assistant inicializado');\n    setupMarked(); // Configurar renderizador\n    createNotificationContainer(); // Criar container de alertas\n    loadConversations();\n    loadConfig();\n    connectWebSocket();\n});\n\n// Container de Notifica\u00e7\u00f5es\nfunction createNotifica"
+    },
+    "frontend\\index.html": {
+      "size": 4694,
+      "symbols": [],
+      "summary": "<!DOCTYPE html>\n<html lang=\"pt-BR\">\n\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>AI Coding Assistant</title>\n    <link rel=\"stylesheet\" href=\"/static/styles.css\">\n    <link rel=\"stylesheet\" href=\"/static/styles/antigravity-theme.css\">\n    <!-- Marked.js para Markdown -->\n    <script src=\"https://cdn.jsdelivr.net/npm/marked/marked.min.js\"></script>\n    <!-- Mermaid.js para Diagramas -->\n    <script src=\"https://cdn.jsdeli"
+    },
+    "frontend\\styles.css": {
+      "size": 6074,
+      "symbols": [],
+      "summary": "/**\n * CSS para AI Coding Assistant\n */\n\n* {\n    margin: 0;\n    padding: 0;\n    box-sizing: border-box;\n}\n\n:root {\n    --bg-primary: #0f0f17;\n    --bg-secondary: #1a1a2e;\n    --bg-tertiary: #252535;\n    --accent: #64c8ff;\n    --accent-hover: #50b0e8;\n    --text-primary: #e5e7eb;\n    --text-secondary: #9ca3af;\n    --border: #2a2a3e;\n    --success: #10b981;\n    --error: #ef4444;\n}\n\nbody {\n    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;\n    background: var(--bg-primary);\n    colo"
+    },
+    "frontend\\components\\ArtifactsPanel.js": {
+      "size": 5522,
+      "symbols": [
+        "container",
+        "modal",
+        "data",
+        "html",
+        "response",
+        "artifactsPanel",
+        "div",
+        "date",
+        "panel",
+        "icons",
+        "existingModal",
+        "button",
+        "icon",
+        "ArtifactsPanel"
+      ],
+      "summary": "// Componente de Artifacts Panel\nclass ArtifactsPanel {\n    constructor() {\n        this.artifacts = [];\n        this.conversationId = 'default';\n        this.isVisible = false;\n    }\n\n    async init() {\n        // Criar bot\u00e3o toggle\n        this.createToggleButton();\n\n        // Criar painel\n        this.createPanel();\n\n        // Carregar artifacts\n        await this.loadArtifacts();\n\n        // Poll a cada 5 segundos\n        setInterval(() => this.loadArtifacts(), 5000);\n    }\n\n    createTogg"
+    },
+    "frontend\\components\\TaskProgress.js": {
+      "size": 4645,
+      "symbols": [
+        "data",
+        "progress",
+        "response",
+        "div",
+        "colors",
+        "taskProgress",
+        "icons",
+        "modeColor",
+        "modeIcon",
+        "TaskProgress",
+        "subtasksList"
+      ],
+      "summary": "// Componente de Task Progress\nclass TaskProgress {\n    constructor() {\n        this.currentTask = null;\n        this.container = null;\n    }\n\n    init() {\n        // Criar container se n\u00e3o existir\n        if (!this.container) {\n            this.container = document.createElement('div');\n            this.container.id = 'task-progress-container';\n            this.container.className = 'task-progress-hidden glass-panel';\n            document.body.appendChild(this.container);\n        }\n\n        // "
+    },
+    "frontend\\components\\TerminalDashboard.js": {
+      "size": 1576,
+      "symbols": [
+        "div",
+        "TerminalDashboard"
+      ],
+      "summary": "/**\n * TerminalDashboard Component - Phase 4\n * Displays real-time terminal output from the AI agent\n */\n\nclass TerminalDashboard {\n    constructor() {\n        this.container = document.getElementById('terminal-content');\n        this.dashboard = document.getElementById('terminal-dashboard');\n        this.isVisible = false;\n    }\n\n    appendLine(text, type = 'stdout') {\n        if (!this.container) return;\n\n        // Mostrar dashboard ao receber dados se estiver escondido\n        if (!this.isVi"
+    },
+    "frontend\\styles\\antigravity-theme.css": {
+      "size": 10074,
+      "symbols": [],
+      "summary": "/* ==============================================================================\n   ANTIGRAVITY-STYLE THEME - Task Progress & Artifacts\n   ============================================================================== */\n\n/* Task Progress Component */\n#task-progress-container {\n    position: fixed;\n    top: 20px;\n    right: 20px;\n    z-index: 1000;\n    max-width: 400px;\n    transition: all 0.3s ease;\n}\n\n/* Glassmorphism Classes */\n.glass-panel {\n    background: rgba(15, 15, 25, 0.7) !important;"
+    }
+  },
+  "symbols": {
+    "check_requirements": [
+      "run.py"
+    ],
+    "check_api_keys": [
+      "run.py"
+    ],
+    "start_server": [
+      "run.py"
+    ],
+    "main": [
+      "run.py",
+      "backend\\main.py"
+    ],
+    "load_config": [
+      "backend\\config_loader.py"
+    ],
+    "save_config": [
+      "backend\\config_loader.py"
+    ],
+    "startup_event": [
+      "backend\\main.py"
+    ],
+    "get_llm_provider": [
+      "backend\\main.py"
+    ],
+    "ChatMessage": [
+      "backend\\main.py"
+    ],
+    "ChatRequest": [
+      "backend\\main.py"
+    ],
+    "ChatResponse": [
+      "backend\\main.py"
+    ],
+    "ConfigUpdate": [
+      "backend\\main.py"
+    ],
+    "root": [
+      "backend\\main.py"
+    ],
+    "get_config": [
+      "backend\\main.py"
+    ],
+    "update_config": [
+      "backend\\main.py"
+    ],
+    "chat": [
+      "backend\\main.py"
+    ],
+    "send_proactive_suggestion": [
+      "backend\\main.py"
+    ],
+    "websocket_chat": [
+      "backend\\main.py"
+    ],
+    "process_llm_tags": [
+      "backend\\main.py"
+    ],
+    "list_conversations": [
+      "backend\\main.py",
+      "backend\\memory\\conversation_manager.py"
+    ],
+    "get_conversation": [
+      "backend\\main.py"
+    ],
+    "delete_conversation": [
+      "backend\\main.py",
+      "backend\\memory\\conversation_manager.py"
+    ],
+    "list_tools": [
+      "backend\\main.py"
+    ],
+    "execute_tool_endpoint": [
+      "backend\\main.py"
+    ],
+    "get_artifact_manager": [
+      "backend\\main.py"
+    ],
+    "list_artifacts": [
+      "backend\\main.py",
+      "backend\\artifacts\\artifact_manager.py"
+    ],
+    "get_artifact": [
+      "backend\\main.py",
+      "backend\\artifacts\\artifact_manager.py"
+    ],
+    "create_artifact": [
+      "backend\\main.py",
+      "backend\\artifacts\\artifact_manager.py"
+    ],
+    "update_artifact": [
+      "backend\\main.py",
+      "backend\\artifacts\\artifact_manager.py"
+    ],
+    "delete_artifact": [
+      "backend\\main.py",
+      "backend\\artifacts\\artifact_manager.py"
+    ],
+    "get_current_task": [
+      "backend\\main.py"
+    ],
+    "start_task": [
+      "backend\\main.py",
+      "backend\\task_tracking\\task_manager.py"
+    ],
+    "update_task_progress": [
+      "backend\\main.py"
+    ],
+    "complete_task": [
+      "backend\\main.py",
+      "backend\\task_tracking\\task_manager.py"
+    ],
+    "get_task_history": [
+      "backend\\main.py"
+    ],
+    "health_check": [
+      "backend\\main.py"
+    ],
+    "SpecializedAgent": [
+      "backend\\agents\\agent_manager.py"
+    ],
+    "__init__": [
+      "backend\\agents\\agent_manager.py",
+      "backend\\agents\\proactive_analyzer.py",
+      "backend\\artifacts\\artifact_manager.py",
+      "backend\\execution\\autonomous_executor.py",
+      "backend\\execution\\browser_automator.py",
+      "backend\\execution\\execution_tools.py",
+      "backend\\execution\\terminal_executor.py",
+      "backend\\llm_providers\\base_provider.py",
+      "backend\\llm_providers\\gemini_provider.py",
+      "backend\\llm_providers\\ollama_provider.py",
+      "backend\\llm_providers\\openai_provider.py",
+      "backend\\memory\\conversation_manager.py",
+      "backend\\memory\\rag\\project_indexer.py",
+      "backend\\skills\\skill_manager.py",
+      "backend\\task_tracking\\task_manager.py",
+      "backend\\tools\\tool_registry.py"
+    ],
+    "think": [
+      "backend\\agents\\agent_manager.py"
+    ],
+    "AgentManager": [
+      "backend\\agents\\agent_manager.py"
+    ],
+    "spawn_agent": [
+      "backend\\agents\\agent_manager.py"
+    ],
+    "delegate_to_agent": [
+      "backend\\agents\\agent_manager.py"
+    ],
+    "list_agents": [
+      "backend\\agents\\agent_manager.py"
+    ],
+    "ProactiveAnalyzer": [
+      "backend\\agents\\proactive_analyzer.py"
+    ],
+    "analyze_project": [
+      "backend\\agents\\proactive_analyzer.py"
+    ],
+    "_check_file": [
+      "backend\\agents\\proactive_analyzer.py"
+    ],
+    "run_periodic_check": [
+      "backend\\agents\\proactive_analyzer.py"
+    ],
+    "ArtifactManager": [
+      "backend\\artifacts\\artifact_manager.py"
+    ],
+    "_load_metadata": [
+      "backend\\artifacts\\artifact_manager.py"
+    ],
+    "_save_metadata": [
+      "backend\\artifacts\\artifact_manager.py"
+    ],
+    "ArtifactCreate": [
+      "backend\\artifacts\\models.py"
+    ],
+    "ArtifactUpdate": [
+      "backend\\artifacts\\models.py"
+    ],
+    "ArtifactResponse": [
+      "backend\\artifacts\\models.py"
+    ],
+    "AutonomousExecutor": [
+      "backend\\execution\\autonomous_executor.py"
+    ],
+    "run_with_retry": [
+      "backend\\execution\\autonomous_executor.py"
+    ],
+    "_ask_for_correction": [
+      "backend\\execution\\autonomous_executor.py"
+    ],
+    "BrowserAutomator": [
+      "backend\\execution\\browser_automator.py"
+    ],
+    "screenshot": [
+      "backend\\execution\\browser_automator.py"
+    ],
+    "scrape_text": [
+      "backend\\execution\\browser_automator.py"
+    ],
+    "ExecutionTools": [
+      "backend\\execution\\execution_tools.py"
+    ],
+    "terminal_run": [
+      "backend\\execution\\execution_tools.py"
+    ],
+    "web_screenshot": [
+      "backend\\execution\\execution_tools.py"
+    ],
+    "web_read": [
+      "backend\\execution\\execution_tools.py"
+    ],
+    "project_search": [
+      "backend\\execution\\execution_tools.py"
+    ],
+    "autonomous_terminal_run": [
+      "backend\\execution\\execution_tools.py"
+    ],
+    "agent_spawn": [
+      "backend\\execution\\execution_tools.py"
+    ],
+    "agent_delegate": [
+      "backend\\execution\\execution_tools.py"
+    ],
+    "agent_list": [
+      "backend\\execution\\execution_tools.py"
+    ],
+    "create_new_tool": [
+      "backend\\execution\\execution_tools.py"
+    ],
+    "TerminalExecutor": [
+      "backend\\execution\\terminal_executor.py"
+    ],
+    "execute": [
+      "backend\\execution\\terminal_executor.py"
+    ],
+    "read_stream": [
+      "backend\\execution\\terminal_executor.py"
+    ],
+    "_merge_streams": [
+      "backend\\execution\\terminal_executor.py"
+    ],
+    "enqueue": [
+      "backend\\execution\\terminal_executor.py"
+    ],
+    "para": [
+      "backend\\llm_providers\\base_provider.py"
+    ],
+    "BaseLLMProvider": [
+      "backend\\llm_providers\\base_provider.py"
+    ],
+    "name": [
+      "backend\\llm_providers\\base_provider.py",
+      "backend\\llm_providers\\gemini_provider.py",
+      "backend\\llm_providers\\ollama_provider.py",
+      "backend\\llm_providers\\openai_provider.py"
+    ],
+    "generate": [
+      "backend\\llm_providers\\base_provider.py",
+      "backend\\llm_providers\\gemini_provider.py",
+      "backend\\llm_providers\\ollama_provider.py",
+      "backend\\llm_providers\\openai_provider.py"
+    ],
+    "stream_generate": [
+      "backend\\llm_providers\\base_provider.py",
+      "backend\\llm_providers\\gemini_provider.py",
+      "backend\\llm_providers\\ollama_provider.py",
+      "backend\\llm_providers\\openai_provider.py"
+    ],
+    "_build_system_prompt": [
+      "backend\\llm_providers\\base_provider.py"
+    ],
+    "_format_messages": [
+      "backend\\llm_providers\\base_provider.py"
+    ],
+    "GeminiProvider": [
+      "backend\\llm_providers\\gemini_provider.py"
+    ],
+    "_setup_model": [
+      "backend\\llm_providers\\gemini_provider.py"
+    ],
+    "_convert_messages": [
+      "backend\\llm_providers\\gemini_provider.py"
+    ],
+    "OllamaProvider": [
+      "backend\\llm_providers\\ollama_provider.py"
+    ],
+    "_convert_to_prompt": [
+      "backend\\llm_providers\\ollama_provider.py"
+    ],
+    "OpenAIProvider": [
+      "backend\\llm_providers\\openai_provider.py"
+    ],
+    "ConversationManager": [
+      "backend\\memory\\conversation_manager.py"
+    ],
+    "_init_database": [
+      "backend\\memory\\conversation_manager.py"
+    ],
+    "create_conversation": [
+      "backend\\memory\\conversation_manager.py"
+    ],
+    "add_message": [
+      "backend\\memory\\conversation_manager.py"
+    ],
+    "get_messages": [
+      "backend\\memory\\conversation_manager.py"
+    ],
+    "update_conversation_title": [
+      "backend\\memory\\conversation_manager.py"
+    ],
+    "get_context_window": [
+      "backend\\memory\\conversation_manager.py"
+    ],
+    "ProjectIndexer": [
+      "backend\\memory\\rag\\project_indexer.py"
+    ],
+    "index_project": [
+      "backend\\memory\\rag\\project_indexer.py"
+    ],
+    "_index_file": [
+      "backend\\memory\\rag\\project_indexer.py"
+    ],
+    "search_symbols": [
+      "backend\\memory\\rag\\project_indexer.py"
+    ],
+    "search_keyword": [
+      "backend\\memory\\rag\\project_indexer.py"
+    ],
+    "save_index": [
+      "backend\\memory\\rag\\project_indexer.py"
+    ],
+    "load_index": [
+      "backend\\memory\\rag\\project_indexer.py"
+    ],
+    "SkillManager": [
+      "backend\\skills\\skill_manager.py"
+    ],
+    "load_skills": [
+      "backend\\skills\\skill_manager.py"
+    ],
+    "_parse_skill": [
+      "backend\\skills\\skill_manager.py"
+    ],
+    "get_skill_prompts": [
+      "backend\\skills\\skill_manager.py"
+    ],
+    "list_skills": [
+      "backend\\skills\\skill_manager.py"
+    ],
+    "Task": [
+      "backend\\task_tracking\\task_manager.py"
+    ],
+    "TaskManager": [
+      "backend\\task_tracking\\task_manager.py"
+    ],
+    "update_progress": [
+      "backend\\task_tracking\\task_manager.py"
+    ],
+    "add_subtask": [
+      "backend\\task_tracking\\task_manager.py"
+    ],
+    "get_current": [
+      "backend\\task_tracking\\task_manager.py"
+    ],
+    "get_history": [
+      "backend\\task_tracking\\task_manager.py"
+    ],
+    "TimeoutError": [
+      "backend\\tools\\code_executor.py"
+    ],
+    "timeout_handler": [
+      "backend\\tools\\code_executor.py"
+    ],
+    "time_limit": [
+      "backend\\tools\\code_executor.py"
+    ],
+    "execute_python": [
+      "backend\\tools\\code_executor.py"
+    ],
+    "execute_python_safe": [
+      "backend\\tools\\code_executor.py"
+    ],
+    "read_file": [
+      "backend\\tools\\file_operations.py"
+    ],
+    "write_file": [
+      "backend\\tools\\file_operations.py"
+    ],
+    "list_files": [
+      "backend\\tools\\file_operations.py"
+    ],
+    "create_directory": [
+      "backend\\tools\\file_operations.py"
+    ],
+    "delete_file": [
+      "backend\\tools\\file_operations.py"
+    ],
+    "import": [
+      "backend\\tools\\tool_registry.py"
+    ],
+    "class": [
+      "backend\\tools\\tool_registry.py"
+    ],
+    "ToolRegistry": [
+      "backend\\tools\\tool_registry.py"
+    ],
+    "register_tool": [
+      "backend\\tools\\tool_registry.py"
+    ],
+    "_register_built_in_tools": [
+      "backend\\tools\\tool_registry.py"
+    ],
+    "get_available_tools": [
+      "backend\\tools\\tool_registry.py"
+    ],
+    "execute_tool": [
+      "backend\\tools\\tool_registry.py"
+    ],
+    "register_execution_tools": [
+      "backend\\tools\\tool_registry.py"
+    ],
+    "get_tools_for_llm": [
+      "backend\\tools\\tool_registry.py"
+    ],
+    "Tool": [
+      "backend\\tools\\tool_registry.py"
+    ],
+    "currentConversationId": [
+      "frontend\\app.js"
+    ],
+    "ws": [
+      "frontend\\app.js"
+    ],
+    "isStreaming": [
+      "frontend\\app.js"
+    ],
+    "container": [
+      "frontend\\app.js",
+      "frontend\\components\\ArtifactsPanel.js"
+    ],
+    "toast": [
+      "frontend\\app.js"
+    ],
+    "renderer": [
+      "frontend\\app.js"
+    ],
+    "type": [
+      "frontend\\app.js"
+    ],
+    "cleanQuote": [
+      "frontend\\app.js"
+    ],
+    "wsUrl": [
+      "frontend\\app.js"
+    ],
+    "data": [
+      "frontend\\app.js",
+      "frontend\\components\\ArtifactsPanel.js",
+      "frontend\\components\\TaskProgress.js"
+    ],
+    "input": [
+      "frontend\\app.js"
+    ],
+    "message": [
+      "frontend\\app.js"
+    ],
+    "assistantMessageDiv": [
+      "frontend\\app.js"
+    ],
+    "messagesDiv": [
+      "frontend\\app.js"
+    ],
+    "messageDiv": [
+      "frontend\\app.js"
+    ],
+    "div": [
+      "frontend\\app.js",
+      "frontend\\components\\ArtifactsPanel.js",
+      "frontend\\components\\TaskProgress.js",
+      "frontend\\components\\TerminalDashboard.js"
+    ],
+    "avatar": [
+      "frontend\\app.js"
+    ],
+    "contentDiv": [
+      "frontend\\app.js"
+    ],
+    "html": [
+      "frontend\\app.js",
+      "frontend\\components\\ArtifactsPanel.js"
+    ],
+    "messages": [
+      "frontend\\app.js"
+    ],
+    "lastMessage": [
+      "frontend\\app.js"
+    ],
+    "currentText": [
+      "frontend\\app.js"
+    ],
+    "newText": [
+      "frontend\\app.js"
+    ],
+    "response": [
+      "frontend\\app.js",
+      "frontend\\components\\ArtifactsPanel.js",
+      "frontend\\components\\TaskProgress.js"
+    ],
+    "conversations": [
+      "frontend\\app.js"
+    ],
+    "listDiv": [
+      "frontend\\app.js"
+    ],
+    "item": [
+      "frontend\\app.js"
+    ],
+    "config": [
+      "frontend\\app.js"
+    ],
+    "provider": [
+      "frontend\\app.js"
+    ],
+    "temperature": [
+      "frontend\\app.js"
+    ],
+    "indicator": [
+      "frontend\\app.js"
+    ],
+    "ArtifactsPanel": [
+      "frontend\\components\\ArtifactsPanel.js"
+    ],
+    "button": [
+      "frontend\\components\\ArtifactsPanel.js"
+    ],
+    "panel": [
+      "frontend\\components\\ArtifactsPanel.js"
+    ],
+    "icon": [
+      "frontend\\components\\ArtifactsPanel.js"
+    ],
+    "date": [
+      "frontend\\components\\ArtifactsPanel.js"
+    ],
+    "icons": [
+      "frontend\\components\\ArtifactsPanel.js",
+      "frontend\\components\\TaskProgress.js"
+    ],
+    "existingModal": [
+      "frontend\\components\\ArtifactsPanel.js"
+    ],
+    "modal": [
+      "frontend\\components\\ArtifactsPanel.js"
+    ],
+    "artifactsPanel": [
+      "frontend\\components\\ArtifactsPanel.js"
+    ],
+    "TaskProgress": [
+      "frontend\\components\\TaskProgress.js"
+    ],
+    "colors": [
+      "frontend\\components\\TaskProgress.js"
+    ],
+    "modeIcon": [
+      "frontend\\components\\TaskProgress.js"
+    ],
+    "modeColor": [
+      "frontend\\components\\TaskProgress.js"
+    ],
+    "progress": [
+      "frontend\\components\\TaskProgress.js"
+    ],
+    "subtasksList": [
+      "frontend\\components\\TaskProgress.js"
+    ],
+    "taskProgress": [
+      "frontend\\components\\TaskProgress.js"
+    ],
+    "TerminalDashboard": [
+      "frontend\\components\\TerminalDashboard.js"
+    ]
+  }
+}

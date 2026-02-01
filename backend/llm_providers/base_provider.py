@@ -4,7 +4,7 @@ Base class para providers de LLM
 
 from abc import ABC, abstractmethod
 from typing import List, Dict, AsyncGenerator, Optional
-from skills.skill_manager import SkillManager
+from backend.skills.skill_manager import SkillManager
 import os
 
 

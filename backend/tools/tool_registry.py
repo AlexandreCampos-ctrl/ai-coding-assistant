@@ -35,10 +35,10 @@ class ToolRegistry:
     
     def _register_built_in_tools(self):
         """Registra ferramentas built-in"""
-        from tools.file_operations import (
+        from backend.tools.file_operations import (
             read_file, write_file, list_files, create_directory
         )
-        from tools.code_executor import execute_python
+        from backend.tools.code_executor import execute_python
         
         # File operations
         self.register_tool(
@@ -127,7 +127,7 @@ class ToolRegistry:
     
     def register_execution_tools(self, conversation_id: str, provider: Optional[Any] = None, agent_manager: Optional[Any] = None):
         """Registra ferramentas de execução (terminal/browser) para uma conversa"""
-        from execution.execution_tools import ExecutionTools
+        from backend.execution.execution_tools import ExecutionTools
         
         exec_tools = ExecutionTools(conversation_id, provider=provider, agent_manager=agent_manager, tool_registry=self)
         
